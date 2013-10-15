@@ -1,0 +1,278 @@
+#County Starts here. ZIPs starts on 200
+#Merging Zillow Data
+#Thanks for the Data Zillow!
+turnoverrt = read.csv(file = "~/County/County_Turnover_AllHomes.csv")
+salesupply = read.csv(file = "~/County/County_ForSaleInventorySupply_AllHomes.csv")
+soldsupply = read.csv(file = "~/County/County_NumberOfHomesSold_AllHomes.csv")
+increasing = read.csv(file = "~/County/County_PctOfHomesIncreasingInValues_AllHomes.csv")
+decreasing = read.csv(file = "~/County/County_PctOfHomesDecreasingInValues_AllHomes.csv")
+saletolist = read.csv(file = "~/County/County_SalePriceToListRatio_AllHomes.csv")
+zhvi_1_bed = read.csv(file = "~/County/County_Zhvi_1bedroom.csv")
+zhvi_2_bed = read.csv(file = "~/County/County_Zhvi_2bedroom.csv")
+zhvi_3_bed = read.csv(file = "~/County/County_Zhvi_3bedroom.csv")
+zhvi_4_bed = read.csv(file = "~/County/County_Zhvi_4bedroom.csv")
+zhvi_5_bed = read.csv(file = "~/County/County_Zhvi_5BedroomOrMore.csv")
+foreclosed = read.csv(file = "~/County/County_HomesSoldAsForeclosures-Ratio_AllHomes.csv")
+medianpric = read.csv(file = "~/COunty/County_MedianSoldPrice_AllHomes.csv")
+
+#Bring in some auctiondata
+#The query specifically rejects Trustee and Rentals, but everything else is fair.
+auctiondat = read.csv(file = "~/CountyLevelPerformance.csv")
+names(auctiondat) = c("State","RegionName","BTS","Sales","SaleRate")
+
+
+
+#Keep 3 Month Moving Average for Each County
+turnoverrt$MovingAverage_Trno = apply(turnoverrt[,as.numeric(ncol(turnoverrt)-2):as.numeric(ncol(turnoverrt))], 1, mean, na.rm=T)
+
+#Do it for all metrics
+salesupply$MovingAverage_Inv  = apply(salesupply[,as.numeric(ncol(salesupply)-2):as.numeric(ncol(salesupply))], 1, mean, na.rm=T)
+soldsupply$MovingAverage_Sold = apply(soldsupply[,as.numeric(ncol(soldsupply)-2):as.numeric(ncol(soldsupply))], 1, mean, na.rm=T)
+increasing$MovingAverage_Inc  = apply(increasing[,as.numeric(ncol(increasing)-2):as.numeric(ncol(increasing))], 1, mean, na.rm=T)
+decreasing$MovingAverage_Dec  = apply(decreasing[,as.numeric(ncol(decreasing)-2):as.numeric(ncol(decreasing))], 1, mean, na.rm=T)
+saletolist$MovingAverage_Attn = apply(saletolist[,as.numeric(ncol(saletolist)-2):as.numeric(ncol(saletolist))], 1, mean, na.rm=T)
+zhvi_1_bed$MovingAverage_Z1bd = apply(zhvi_1_bed[,as.numeric(ncol(zhvi_1_bed)-2):as.numeric(ncol(zhvi_1_bed))], 1, mean, na.rm=T)
+zhvi_2_bed$MovingAverage_Z2bd = apply(zhvi_2_bed[,as.numeric(ncol(zhvi_2_bed)-2):as.numeric(ncol(zhvi_2_bed))], 1, mean, na.rm=T)
+zhvi_3_bed$MovingAverage_Z3bd = apply(zhvi_3_bed[,as.numeric(ncol(zhvi_3_bed)-2):as.numeric(ncol(zhvi_3_bed))], 1, mean, na.rm=T)
+zhvi_4_bed$MovingAverage_Z4bd = apply(zhvi_4_bed[,as.numeric(ncol(zhvi_4_bed)-2):as.numeric(ncol(zhvi_4_bed))], 1, mean, na.rm=T)
+zhvi_5_bed$MovingAverage_Z5bd = apply(zhvi_5_bed[,as.numeric(ncol(zhvi_5_bed)-2):as.numeric(ncol(zhvi_5_bed))], 1, mean, na.rm=T)
+foreclosed$MovingAverage_Frcl = apply(foreclosed[,as.numeric(ncol(foreclosed)-2):as.numeric(ncol(foreclosed))], 1, mean, na.rm=T)
+medianpric$MovingAverage_Medp = apply(medianpric[,as.numeric(ncol(medianpric)-2):as.numeric(ncol(medianpric))], 1, mean, na.rm=T)
+
+#Discard the rest, keep only the 3MMA, remove NAs
+salesupply = salesupply[is.nan(salesupply[,ncol(salesupply)])==F,c(1:5,ncol(salesupply))]
+soldsupply = soldsupply[is.nan(soldsupply[,ncol(soldsupply)])==F,c(1:2,ncol(soldsupply))]
+increasing = increasing[is.nan(increasing[,ncol(increasing)])==F,c(1:2,ncol(increasing))]
+decreasing = decreasing[is.nan(decreasing[,ncol(decreasing)])==F,c(1:2,ncol(decreasing))]
+saletolist = saletolist[is.nan(saletolist[,ncol(saletolist)])==F,c(1:2,ncol(saletolist))]
+zhvi_1_bed = zhvi_1_bed[is.nan(zhvi_1_bed[,ncol(zhvi_1_bed)])==F,c(1:2,ncol(zhvi_1_bed))]
+zhvi_2_bed = zhvi_2_bed[is.nan(zhvi_2_bed[,ncol(zhvi_2_bed)])==F,c(1:2,ncol(zhvi_2_bed))]
+zhvi_3_bed = zhvi_3_bed[is.nan(zhvi_3_bed[,ncol(zhvi_3_bed)])==F,c(1:2,ncol(zhvi_3_bed))]
+zhvi_4_bed = zhvi_4_bed[is.nan(zhvi_4_bed[,ncol(zhvi_4_bed)])==F,c(1:2,ncol(zhvi_4_bed))]
+zhvi_5_bed = zhvi_5_bed[is.nan(zhvi_5_bed[,ncol(zhvi_5_bed)])==F,c(1:2,ncol(zhvi_5_bed))]
+foreclosed = foreclosed[is.nan(foreclosed[,ncol(foreclosed)])==F,c(1:2,ncol(foreclosed))]
+medianpric = medianpric[is.nan(medianpric[,ncol(medianpric)])==F,c(1:2,ncol(medianpric))]
+turnoverrt = turnoverrt[is.nan(turnoverrt[,ncol(turnoverrt)])==F,c(1:2,ncol(turnoverrt))]
+
+#Merge on County and State
+Merged = merge(salesupply, turnoverrt, by = c("RegionName","State"), all=T)
+Merged = merge(Merged, soldsupply, by = c("RegionName","State"), all=T)
+Merged = merge(Merged, increasing, by = c("RegionName","State"), all=T)
+Merged = merge(Merged, decreasing, by = c("RegionName","State"), all=T)
+Merged = merge(Merged, saletolist, by = c("RegionName","State"), all=T)
+Merged = merge(Merged, zhvi_1_bed, by = c("RegionName","State"), all=T)
+Merged = merge(Merged, zhvi_2_bed, by = c("RegionName","State"), all=T)
+Merged = merge(Merged, zhvi_3_bed, by = c("RegionName","State"), all=T)
+Merged = merge(Merged, zhvi_4_bed, by = c("RegionName","State"), all=T)
+Merged = merge(Merged, zhvi_5_bed, by = c("RegionName","State"), all=T)
+Merged = merge(Merged, foreclosed, by = c("RegionName","State"), all=T)
+Merged = merge(Merged, medianpric, by = c("RegionName","State"), all=T)
+
+#standardize
+Standardized = Merged
+Standard = apply(Merged[6:18],MARGIN=2,FUN=max, na.rm=T)
+
+for(i in 6:18){
+  print(names(Standardized)[i])
+  print(max(Standardized[,i],na.rm=T))
+  Standardized[,i] = Standardized[,i] / Standard[i-5]
+  print(max(Standardized[,i],na.rm=T))
+}
+
+Standardized = merge(Standardized, auctiondat, by = c("RegionName","State"),all.x=T)
+
+#Explore the counties to see what is actually worth clustering on
+Explore_Hi = Standardized[Standardized$BTS >= 40 & is.na(Standardized$BTS)==F & Standardized$SaleRate >= .5,]
+Explore_Me = Standardized[Standardized$BTS >= 40 & is.na(Standardized$BTS)==F & Standardized$SaleRate < .5 & Standardized$SaleRate >.15,]
+Explore_Lo = Standardized[Standardized$BTS >= 40 & is.na(Standardized$BTS)==F & Standardized$SaleRate <= .15,]
+#See if there is a typical difference in any of the metrics
+apply(X = Explore_Hi[,6:21], MARGIN =2, as.numeric)
+hi_means = apply(X=Explore_Hi[,6:21],MARGIN=2,mean,na.rm=T)
+hi_sds = apply(X=Explore_Hi[,6:21],MARGIN=2,sd, na.rm=T)
+me_means = apply(X=Explore_Me[,6:21],MARGIN=2,mean,na.rm=T)
+me_sds = apply(X=Explore_Me[,6:21],MARGIN=2,sd, na.rm=T)
+lo_means = apply(X=Explore_Lo[,6:21],MARGIN=2,mean,na.rm=T)
+lo_sds = apply(X=Explore_Lo[,6:21],MARGIN=2,sd,na.rm=T)
+
+#Bind together
+a = as.data.frame(cbind(hi_means,hi_sds,me_means,me_sds,lo_means,lo_sds))
+
+#Fascinating, at this run, the following are evident:
+#ADC counties are better if they have high turnover, high appreciation, low depreciation, high prices, low inventory
+#Performance does not seem to be strongly related to share of sales that are foreclosure, number of sales (only rate is important)
+
+#Make a Composite Hot Counties
+#All the good qualities (or bad qualities inverted) multiplied together. If a value is missing, apply the median
+Standardized$CountyScore = (#(1.000001 - ifelse(is.na(Standardized$MovingAverage_Inv)==T,median(Standardized$MovingAverage_Inv,na.rm=T),Standardized$MovingAverage_Inv))*
+  ifelse(is.na(Standardized$MovingAverage_Trno)==T,median(Standardized$MovingAverage_Trno,na.rm=T),Standardized$MovingAverage_Trno)
+  *ifelse(is.na(Standardized$MovingAverage_Inc)==T,median(Standardized$MovingAverage_Inc,na.rm=T),Standardized$MovingAverage_Inc)
+  #*(1.000001 - ifelse(is.na(Standardized$MovingAverage_Dec)==T,median(Standardized$MovingAverage_Dec,na.rm=T),Standardized$MovingAverage_Dec))
+  #*ifelse(is.na(Standardized$MovingAverage_Medp)==T,median(Standardized$MovingAverage_Medp,na.rm=T),Standardized$MovingAverage_Medp)
+)
+
+#Let's plot and see if it looks about right
+x = Standardized$CountyScore[Standardized$BTS>=20 & is.na(Standardized$BTS)==F]
+y = Standardized$SaleRate[Standardized$BTS>=20 & is.na(Standardized$BTS)==F]
+plot(x=x, y=y, xlab = "County Quality Score", ylab = "Sales Rate")
+
+#Make it a nice number                              
+Standardized$CountyQualityIndex = round(Standardized$CountyScore*100,1)
+Standardized$CountyQualityIndex[Standardized$CountyQualityIndex>10] = 10
+Sample = Standardized[Standardized$BTS>=20 & is.na(Standardized$BTS)==F, c("State","RegionName","Metro","BTS","Sales","SaleRate","CountyQualityIndex")]
+quantile(Standardized$CountyQualityIndex,probs = c(.50,.80,1.0))
+Standardized$County_Quality = cut(Standardized$CountyQualityIndex,
+                                  breaks=c(0,quantile(Standardized$CountyQualityIndex,probs = c(.50,.80,1.0))),
+                                  labels=c("Low","Med","High"))
+
+statematch = read.csv("~/StateMatch.csv")
+mapper = merge(Standardized, statematch, by = "State")
+mapper$StateName = tolower(mapper$StateName)
+mapper$RegionName = tolower(mapper$RegionName)
+
+#Let's make a map!!
+library(ggplot2)
+library(maptools)
+library(maps)
+library(scales)
+library(ggmap)
+library(lubridate)
+
+
+county_map <- map_data("county")
+state_map <- map_data("state")
+
+c = mapper[,c("StateName","RegionName","County_Quality")]
+names(c) = c("region","subregion","County_Quality")
+county_map = county_map[county_map$region=="washington",]
+county_map = merge(county_map ,c, by=c("region","subregion"), all.x = T, sort = F)
+county_map = county_map[order(county_map$order),]
+
+theme_clean <- function(base_size = 12) {
+  require(grid)
+  theme_grey(base_size) %+replace%
+    theme(
+      axis.title      =   element_blank(),
+      axis.text       =   element_blank(),
+      plot.title      = element_text(size = rel(2)),
+      panel.background    =    element_rect(fill = "transparent", colour = NA),
+      panel.grid      =   element_blank(),
+      axis.ticks.length   =   unit(0,"cm"),
+      axis.ticks.margin   =   unit(0,"cm"),
+      panel.margin    =   unit(0,"lines"),
+      plot.margin     =   unit(c(0,0,0,0),"lines"),
+      plot.background = element_rect(colour = 'NA', fill = 'transparent'),
+      complete = TRUE
+    )
+}
+
+theme_transparent <- function (base_size = 12, base_family = "Helvetica"){
+  theme(
+    line = element_line(colour = "black", size = 0.5, linetype = 1, lineend = "butt"),
+    rect = element_rect(fill = "white", colour = "black", size = 0.5, linetype = 1),
+    text = element_text(family = base_family, face = "plain",
+                        colour = "black", size = base_size,
+                        hjust = 0.5, vjust = 0.5, angle = 0, lineheight = 0.9),
+    axis.line = element_blank(), 
+    #axis.text = element_text(size = rel(0.8), colour = 'white', vjust = 1), 
+    #axis.ticks = element_line(colour = "white", size = 0.2), 
+    #axis.title = element_text(colour = 'white', vjust = 1), 
+    #axis.title.y = element_text(angle = 90, vjust = 0.5), 
+    #axis.ticks.length = unit(0.3, "lines"), 
+    #axis.ticks.margin = unit(0.5, "lines"),
+    axis.title      =   element_blank(),
+    axis.text       =   element_blank(),
+    axis.ticks.length   =   unit(0,"cm"),
+    axis.ticks.margin   =   unit(0,"cm"),
+    #legend.background = element_rect(colour = NA), 
+    #legend.key = element_rect(colour = "white", fill = 'transparent'), 
+    #legend.key.size = unit(1.2, "lines"), 
+    #legend.key.height = NULL, 
+    #legend.key.width = NULL,     
+    #legend.text = element_text(size = rel(0.8), colour = 'white'), 
+    #legend.title = element_text(size = rel(0.8), face = "bold", hjust = 0, colour = 'white'), 
+    #legend.position = "right", 
+    #legend.text.align = NULL, 
+    #legend.title.align = NULL, 
+    #legend.direction = "vertical", 
+    #legend.box = NULL,    
+    panel.background = element_rect(fill = "transparent", colour = NA), 
+    panel.border = element_rect(fill = NA, colour = "white"), 
+    #panel.grid.major = element_line(colour = "grey20", size = 0.2), 
+    #panel.grid.minor = element_line(colour = "grey5", size = 0.5), 
+    panel.margin    =   unit(0,"lines"),
+    #strip.background = element_rect(fill = "grey30", colour = "grey10"), 
+    #strip.text = element_text(size = rel(0.8), colour = 'white'), 
+    #strip.text.y = element_text(angle = -90), 
+    plot.background = element_rect(colour = 'NA', fill = 'transparent'), 
+    plot.title = element_text(size = base_size * 1.75), 
+    plot.margin = unit(c(1, 1, 0.5, 0.5), "lines"),
+    
+    complete = TRUE)   # denotes that this is a complete theme function
+}
+
+#Change the geom_polygon arg to to the different types of auction conversion rate
+my_title = "October Asset Performance Vs County Score"
+ggplot( county_map, aes( x = long , y = lat , group=group ) ) +
+  geom_polygon(aes(fill = county_map$County_Quality )) +
+  #scale_fill_manual( values = pal ) +
+  #expand_limits( x = county_map$long, y = county_map$lat ) +
+  #coord_map( "polyconic" ) + 
+  labs(fill="Quality Index") + 
+  #theme_clean( ) +
+  geom_path( data = county_map) +
+  labs(title = my_title)+
+  scale_fill_manual(values=c("grey10","grey30","grey50")) 
+
+#Add Points for the Washington-Specifc Data, Requested 2013-10-10
+WAOct = read.csv(file = "~/WashingtonHUDDay1REO.csv")
+point = WAOct[mdy(as.character(WAOct$AuctionDate)) <= ymd('2013/10/10')
+              & WAOct$AuctionCode %in% c('O-399','O-400','O-401')
+              ,c("IsSold","Latitude","Longitude","AuctionCode","Reserve","HighBid")]
+#point$IsSold = factor(point$IsSold, labels = c("Unsold","Sold") )
+names(point) = c("Sold","lat","lon","AuctionCode","Reserve","HighBid")
+point$lat = as.numeric(as.character(point$lat))
+point$lon = as.numeric(as.character(point$lon))
+point$Reserve = as.numeric(as.character(point$Reserve))
+point$HighBid = as.numeric(as.character(point$HighBid))
+#point$pointsize = 1
+#point$pointsize[point$Sold == "Sold"] = 4
+point$HighBid[is.na(point$HighBid)==T] = 0
+point$ReserveAttain = point$HighBid / point$Reserve
+#NAs in shortfall mean a 100% shortfall with no bids
+point$Attainment = cut(point$ReserveAttain,
+                       breaks = c(-0.1,0.5,0.8,1.1),
+                       labels = c("Low","Med","High"))
+
+
+#Change the geom_polygon arg to to the different types of auction conversion rate
+my_title = "October HUD Day 1 Reserve Attainment vs County Score"
+p = ggplot( county_map, aes( x = long , y = lat , group=group ) ) +
+  geom_polygon(aes(fill = county_map$County_Quality)) +
+  #scale_fill_manual( values = pal ) +
+  #expand_limits( x = county_map$long, y = county_map$lat ) +
+  #coord_map( "polyconic" ) + 
+  labs(fill="Quality Index") + 
+  theme_clean( ) +
+  geom_path( data = county_map) +
+  labs(title = my_title)+
+  scale_fill_manual(values=c("darkblue","blue","lightblue")) 
+
+
+p = p + geom_jitter(data = point, aes(x = lon, y = lat,  fill = NULL, group = Attainment, shape = AuctionCode, colour = Attainment, size = Attainment) ) +
+  #scale_colour_gradient(high = 'red', low = 'green') 
+  #scale_size_continuous(range = c(1,6))
+        scale_size_discrete(range=c(3,4)) +
+        scale_color_manual(values=c("red","orange1","green")) 
+
+p
+#p = p + geom_point(data = UnsoldAssets, aes(x = lon, y = lat,  fill = NULL, group = NULL, colour = Sold, shape = AuctionCode)  )
+p
+
+
+
+
+ggplot(  ) + 
+  
+
+p = p + geom_point(data=point, aes(lat, lon, colour = IsSold, shape = AuctionCode))
+p
